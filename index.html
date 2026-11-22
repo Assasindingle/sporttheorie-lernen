@@ -87,6 +87,7 @@ svg text{fill:var(--ink);font-family:system-ui,sans-serif}
   .printonly h1{font-size:18pt;margin:0}
   .card{border:none;border-radius:0;padding:0 0 8px;margin:0 0 10px}
   details.card{break-inside:auto}
+  #sheet details.card + details.card{break-before:page;page-break-before:always}
   details.card summary{font-size:15pt;border-bottom:2px solid #000;margin-bottom:6px;list-style:none}
   details.card summary::-webkit-details-marker{display:none}
   h3{break-after:avoid;margin-top:8px}
@@ -105,6 +106,7 @@ svg text{fill:var(--ink);font-family:system-ui,sans-serif}
     <span class="timer" id="timer">60:00</span>
     <button class="primary" id="tbtn">▶ Start</button>
     <button id="treset" title="Timer zurücksetzen">⟲</button>
+    <button id="wbtn" title="Zusammenfassung als Word-Datei herunterladen">📄 Word</button>
     <button id="pbtn" title="Spickzettel als PDF speichern oder ausdrucken">🖨 Drucken</button>
   </div>
   <nav id="nav">
@@ -236,7 +238,7 @@ svg text{fill:var(--ink);font-family:system-ui,sans-serif}
       <tr><td><b>Variabilitätsdruck / Situationsdruck</b></td><td>wechselnde Umgebungs-/Situationsbedingungen</td><td>Spiel auf Rasen/Regen/Gegner ändern sich</td></tr>
       <tr><td><b>Belastungsdruck</b></td><td>unter physisch-konditioneller oder psychischer Beanspruchung</td><td>Technik bei Müdigkeit, Wettkampfstress</td></tr>
     </table></div>
-    <p class="muted">Die Beispiele sind Vorschläge von mir. In der Stunde habt ihr eigene gesammelt. Die Definitionen stammen aus der Folie.</p>
+    <p class="muted">Die Beispiele sind Vorschläge und stehen nicht auf den Folien. Die Definitionen stammen aus der Folie.</p>
   </details>
 
   <details class="card">
@@ -472,6 +474,33 @@ const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
     if(typeof d.value==='number'){ $('#cnt').textContent=d.value; try{sessionStorage.setItem('counted','1');}catch(e){} }
   }).catch(()=>{});
 })();
+
+/* ===================== WORD-EXPORT ===================== */
+function buildWordHtml(){
+  let body='<h1 style="font-size:22pt">Sporttheorie – Zusammenfassung (Klasse 9)</h1>'+
+    '<p style="color:#555;font-size:9pt">Inhalt der Unterrichts-PDFs. Definitionen und Abbildungen nach den Folien von Herrn Rach und KNSU (CC BY-SA 4.0).</p>';
+  document.querySelectorAll('#sheet details').forEach((d,i)=>{
+    const c=d.cloneNode(true);
+    const title=c.querySelector('summary').textContent;
+    c.querySelector('summary').remove();
+    c.querySelectorAll('svg').forEach(x=>x.remove());
+    c.querySelectorAll('.tablewrap').forEach(w=>w.replaceWith(...Array.from(w.childNodes)));
+    c.querySelectorAll('table').forEach(t=>{t.setAttribute('border','1');t.setAttribute('cellpadding','4');t.setAttribute('cellspacing','0');t.setAttribute('width','100%');t.setAttribute('style','border-collapse:collapse;font-size:10pt');});
+    c.querySelectorAll('th').forEach(t=>t.setAttribute('style','background:#e3ecff;text-align:left'));
+    c.querySelectorAll('.merke').forEach(m=>m.setAttribute('style','background:#fff4d6;border-left:4px solid #d97706;padding:6px 10px;margin:8px 0'));
+    c.querySelectorAll('.tag').forEach(m=>m.setAttribute('style','font-weight:bold;color:#2563eb'));
+    c.querySelectorAll('.muted').forEach(m=>m.setAttribute('style','color:#555;font-size:9pt'));
+    body+=`<h1 style="font-size:18pt;border-bottom:2px solid #000;${i>0?'page-break-before:always;':''}">${title}</h1>`+c.innerHTML;
+  });
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Sporttheorie Zusammenfassung</title>'+
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->'+
+    '<style>@page{size:21cm 29.7cm;margin:2cm}body{font-family:Calibri,Arial,sans-serif;font-size:11pt}h3{font-size:12pt;margin:10px 0 3px}p{margin:3px 0}</style></head><body>'+body+'</body></html>';
+}
+$('#wbtn').onclick=()=>{
+  const blob=new Blob(['﻿'+buildWordHtml()],{type:'application/msword;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='Sporttheorie_Zusammenfassung.doc';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+};
 
 /* ===================== DRUCKEN ===================== */
 function openAllDetails(){ document.querySelectorAll('#sheet details').forEach(d=>d.open=true); }
