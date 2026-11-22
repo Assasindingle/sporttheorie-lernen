@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sporttheorie in 60 Minuten</title>
+<style>
+:root{
+  --bg:#f4f7fb; --card:#fff; --ink:#1b2430; --muted:#5b6778; --line:#dde4ee;
+  --accent:#2563eb; --accent-soft:#e3ecff; --good:#16a34a; --good-soft:#dcfce7;
+  --bad:#dc2626; --bad-soft:#fee2e2; --warn:#d97706; --warn-soft:#fef3c7;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f141b;--card:#18202b;--ink:#e8edf4;--muted:#9aa7b8;--line:#2a3544;
+  --accent:#6ea0ff;--accent-soft:#1c2c4d;--good:#4ade80;--good-soft:#12301f;
+  --bad:#f87171;--bad-soft:#3a1717;--warn:#fbbf24;--warn-soft:#37290a;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+.bar{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bar h1{font-size:18px;margin:0;flex:1 1 200px}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:20px;background:var(--accent-soft);color:var(--accent);padding:4px 12px;border-radius:999px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:10px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.good{background:var(--good);border-color:var(--good);color:#fff}
+button.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+nav{max-width:980px;margin:0 auto;display:flex;gap:4px;padding:0 12px 8px;overflow-x:auto}
+nav button{border:none;background:transparent;color:var(--muted);padding:8px 14px;border-radius:8px;white-space:nowrap}
+nav button.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+main{max-width:980px;margin:0 auto;padding:16px}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+h2{margin:4px 0 12px;font-size:22px}
+h3{margin:0 0 6px;font-size:17px}
+.muted{color:var(--muted)}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.merke{background:var(--warn-soft);border-left:4px solid var(--warn);padding:8px 12px;border-radius:8px;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.tablewrap{overflow-x:auto}
+ul{margin:6px 0 6px 20px;padding:0}
+/* Plan */
+.step{display:flex;gap:12px;align-items:flex-start}
+.step .min{flex:0 0 78px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.step.now{outline:2px solid var(--accent)}
+.step input{margin-top:6px;width:18px;height:18px}
+/* Spickzettel */
+details.card summary{cursor:pointer;font-weight:700;font-size:18px}
+details.card[open] summary{margin-bottom:8px}
+/* Flashcards */
+.deckbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.chip{padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:14px}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.fc{perspective:1200px;margin:10px 0}
+.fc-inner{position:relative;min-height:260px;transition:transform .45s;transform-style:preserve-3d;cursor:pointer}
+.fc.flip .fc-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;justify-content:center;overflow:auto}
+.face.back{transform:rotateY(180deg);border-color:var(--accent);background:var(--accent-soft)}
+.face .q{font-size:21px;font-weight:600}
+.face .a{font-size:17px}
+.face small{position:absolute;top:10px;left:14px;color:var(--muted)}
+.fc-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.prog{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0 12px}
+.prog>i{display:block;height:100%;background:var(--good);width:0;transition:width .3s}
+/* Quiz */
+.opt{display:block;width:100%;text-align:left;margin:8px 0;padding:11px 14px;border-radius:10px}
+.opt.right{background:var(--good-soft);border-color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opt[disabled]{cursor:default}
+.explain{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--accent-soft)}
+.big{font-size:44px;font-weight:800}
+svg text{fill:var(--ink);font-family:system-ui,sans-serif}
+@media(max-width:600px){.face .q{font-size:18px}.step .min{flex-basis:64px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>🏃 Sporttheorie – alles in 60 Minuten</h1>
+    <span class="timer" id="timer">60:00</span>
+    <button class="primary" id="tbtn">▶ Start</button>
+    <button id="treset" title="Timer zurücksetzen">⟲</button>
+  </div>
+  <nav id="nav">
+    <button data-t="plan" class="on">1 · Lernplan</button>
+    <button data-t="sheet">2 · Spickzettel</button>
+    <button data-t="cards">3 · Karteikarten</button>
+    <button data-t="quiz">4 · Quiz</button>
+  </nav>
+</header>
+<main>
+
+<!-- ============ PLAN ============ -->
+<section id="plan" class="on">
+  <div class="card">
+    <h2>So läuft deine Stunde</h2>
+    <p class="muted">Drück oben auf <b>Start</b>. Hake die Schritte ab. Der aktuelle Schritt wird markiert. Nichts hier ist Pflicht, aber der Ablauf (erst lesen, dann abfragen, dann testen) ist die effektivste Reihenfolge.</p>
+  </div>
+  <div id="steps"></div>
+  <div class="card">
+    <h3>Die ganze Sporttheorie in einem Satz</h3>
+    <p>Sportliche <b>Leistung</b> hängt von <b>Technik</b> (Koordination) und <b>Kondition</b> (Kraft, Schnelligkeit, Ausdauer, Beweglichkeit) ab, dazu kommen Psyche, Taktik, Soziales und Veranlagung. Um sie zu verbessern, <b>trainierst</b> du: Du setzt einen <b>überschwelligen Reiz</b> (Trainingsbelastung), gönnst dir die richtige <b>Pause</b> (→ <b>Superkompensation</b>) und wählst eine passende <b>Trainingsmethode</b> (Dauer, Intervall, Wiederholung, Wettkampf).</p>
+  </div>
+</section>
+
+<!-- ============ SPICKZETTEL ============ -->
+<section id="sheet">
+  <div class="card"><h2>Spickzettel</h2><p class="muted">Alles aus deinen 6 PDFs, kompakt. Klapp ein Thema nach dem anderen auf. <span class="tag">Merke</span> = Prüfungsgold.</p></div>
+
+  <details class="card" open>
+    <summary>① Begriffsbestimmung</summary>
+    <h3>Sporttheorie</h3>
+    <ul>
+      <li>Besteht aus mehreren <b>Bausteinen</b> (Sportbiologie, -medizin, -psychologie, -pädagogik, -soziologie, -geschichte, Trainings- und Bewegungswissenschaft). Jeder hat Relevanz im Sport.</li>
+      <li><b>Theorie = verstehen und planen</b>, <b>Praxis = Bewegung</b>. Beides gehört untrennbar zusammen.</li>
+    </ul>
+    <h3>Sport – 3 Merkmale sportlicher Bewegung</h3>
+    <ol><li><b>zweckfrei</b></li><li><b>nicht maschinell</b> (eigene Aktivität)</li><li>durch <b>sporttypische Bewegungsaufgaben</b> bestimmt</li></ol>
+    <h3>Sportliches Training</h3>
+    <p>„Ein <b>planmäßig gesteuerter Prozess</b>, bei dem mit <b>inhaltlichen, methodischen und organisatorischen Maßnahmen</b>, entsprechend einer <b>Zielvorstellung</b>, Zustandsänderungen der komplexen sportmotorischen Leistung, Handlungsfähigkeit und des Verhaltens entwickelt werden sollen.“</p>
+    <p><b>Ziel:</b> sportliche Leistungsfähigkeit verbessern. <b>Bausteine:</b> Technik · Kondition · Trainingsprinzipien · Trainingsmethoden · Motivation/Wille · Taktik.</p>
+    <h3>Üben vs. trainieren</h3>
+    <div class="tablewrap"><table><tr><th></th><th>üben</th><th>trainieren</th></tr>
+    <tr><td>Was?</td><td>mehrfaches Wiederholen von Bewegungsabläufen</td><td>planmäßig gesteuerte körperliche Anpassung (Prozess)</td></tr>
+    <tr><td>Ziel</td><td>Verbesserung von <b>Koordination</b> und Bewegungsfluss</td><td>Verbesserung der <b>sportlichen Leistungsfähigkeit</b></td></tr></table></div>
+    <h3>Faktoren der sportlichen Leistung(sfähigkeit)</h3>
+    <ul>
+      <li><b>Technik</b> = koordinative Fähigkeiten + Bewegungsfertigkeiten</li>
+      <li><b>Kondition</b> = Kraft, Schnelligkeit, Ausdauer, Flexibilität (= Beweglichkeit)</li>
+      <li><b>Psychische</b> Fähigkeiten · <b>taktisch-kognitive</b> Fähigkeiten · <b>soziale</b> Fähigkeiten</li>
+      <li><b>veranlagungsbedingte, konstitutionelle und gesundheitliche</b> Faktoren</li>
+    </ul>
+    <div class="merke"><b>Merke:</b> Alle Faktoren beeinflussen sich gegenseitig (Pfeile im Schaubild) und zusammen ergeben sie die sportliche Leistungsfähigkeit.</div>
+  </details>
+
+  <details class="card">
+    <summary>② Konditionelle Fähigkeiten</summary>
+    <p><b>Kondition</b> = körperlicher Leistungszustand aus dem Zusammenspiel von <b>Kraft, Ausdauer, Schnelligkeit, Beweglichkeit</b>. Sie befähigen, sportliche Leistungen über einen Zeitraum zu erbringen und Belastungen standzuhalten. <span class="tag">→ QUANTITÄT der Bewegungsausführung</span></p>
+    <p>Motorische Grundeigenschaften = <b>konditionell</b> (4) + <b>koordinativ</b> (Koordination).</p>
+
+    <h3>Kraft</h3>
+    <p>Fähigkeit des <b>Nerv-Muskel-Systems</b>, durch Muskelkontraktion Widerstände zu <b>überwinden</b> (konzentrisch), ihnen <b>entgegenzuwirken</b> (exzentrisch) oder sie zu <b>halten</b> (statisch).</p>
+    <div class="tablewrap"><table>
+      <tr><th>Kraftfähigkeit</th><th>Definition</th><th>Abhängig von</th><th>Beispiel</th></tr>
+      <tr><td><b>Maximalkraft</b></td><td>höchstmögliche Kraft bei maximaler Kontraktion</td><td>Muskelquerschnitt, inter- und intramuskuläre Koordination</td><td>Bankdrücken mit höchstem Gewicht</td></tr>
+      <tr><td><b>Schnellkraft</b></td><td>Körper/Gegenstände mit maximaler Geschwindigkeit bewegen</td><td>Typ der aktivierten Muskelfasern, Muskelquerschnitt</td><td>Kugelstoßen, Medizinball stoßen</td></tr>
+      <tr><td><b>Kraftausdauer</b></td><td>Ermüdungswiderstandsfähigkeit. Allgemein = Gesamtorganismus, lokal = Teilsysteme (dynamisch / statisch)</td><td>–</td><td>dynamisch: Rudern/Schwimmen (Arme). statisch: Skiabfahrt, „Christushang“</td></tr>
+    </table></div>
+    <p class="muted">Die Übersicht nennt außerdem <b>Reaktivkraft</b> (wird in den PDFs nicht erklärt; Zusatzwissen: Kraft bei schnellem Dehnen und Verkürzen der Muskulatur, z. B. Niedersprung mit Absprung).</p>
+
+    <h3>Schnelligkeit</h3>
+    <p>Höchstmögliche <b>Reaktions- und Bewegungsgeschwindigkeit</b> aufgrund kognitiver Prozesse, maximaler Willenskraft und der Funktionalität des Nerv-Muskel-Systems.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Art</th><th>Definition</th><th>Beispiel</th></tr>
+      <tr><td><b>Reaktionsschnelligkeit</b></td><td>in kürzester Zeit auf einen Reiz reagieren (Zeit zwischen optischem/taktilem/akustischem Reiz und motorischer Aktion)</td><td>Startkommando beim 100-m-Sprint, Ball/Gegner</td></tr>
+      <tr><td><b>Frequenzschnelligkeit</b></td><td>Anzahl möglicher Bewegungen in einer Zeiteinheit</td><td>Schrittfrequenz (Sprint), Tretfrequenz (Radsprint), Schlagfrequenz (Rudern)</td></tr>
+      <tr><td><b>Aktionsschnelligkeit</b></td><td><b>azyklische</b> Bewegungen mit höchster Geschwindigkeit gegen geringe Widerstände</td><td>Boxschlag auf Sandsack, Übersteiger beim Fußball</td></tr>
+    </table></div>
+
+    <h3>Ausdauer</h3>
+    <p><b>Psychophysische Ermüdungswiderstandsfähigkeit.</b> Psychisch: einem Reiz, der zum Abbruch auffordert, möglichst lange widerstehen. Physisch: Ermüdungswiderstand des gesamten Organismus oder von Teilsystemen.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Art</th><th>Dauer</th><th>Energiebereitstellung</th><th>Beispiel</th></tr>
+      <tr><td><b>Kurzzeitausdauer</b></td><td>45 s – 2 min</td><td><b>anaerob</b> (alaktazid: Kreatinphosphat. laktazid: Glukose → Laktat)</td><td>400-m-Sprint, 400 m Schwimmen</td></tr>
+      <tr><td><b>Mittelzeitausdauer</b></td><td>2 – 8 min</td><td>zunehmend <b>aerob</b>, Brennstoff Kohlenhydrate</td><td>2000-m-Lauf, Tanzaufführung</td></tr>
+      <tr><td><b>Langzeitausdauer</b></td><td>über 8 min bis Stunden</td><td>ganz <b>aerob</b>: Kohlenhydrate, bei sehr langer Dauer auch <b>Fette</b></td><td>Marathon, Triathlon</td></tr>
+    </table></div>
+    <div class="merke"><b>Merke:</b> Zeiten <b>45 s · 2 min · 8 min</b>. Je länger, desto aerober. Marathon braucht Langzeit-, Sprinter nur Kurzzeitausdauer. Eine <b>Grundlagenausdauer</b> ist für alle gut (Leistung und Gesundheit).</div>
+
+    <h3>Beweglichkeit</h3>
+    <p>Fähigkeit, Bewegungen mit <b>großer Schwingungsweite</b> (selbst oder unter äußerem Einfluss) in einem oder mehreren <b>Gelenken</b> auszuführen. Wirbelsäule am beweglichsten mit <b>8/9 Jahren</b>, erste Einschränkungen ab ca. <b>10 Jahren</b> (Hüftspreizfähigkeit nimmt ab, verkürzte Muskeln). Beispiele: Spagat, Hürdenlauf. Turner/Hürdenläufer brauchen mehr als Fußballer. Beweglichkeitstraining beugt auch muskulären Ungleichgewichten vor.</p>
+
+    <h3>Zusammenfassung</h3>
+    <ul>
+      <li>Wichtig in <b>jeder</b> Sportart, meist <b>Kombination</b> von 2 oder mehr Fähigkeiten (sportartspezifisch).</li>
+      <li>Verbessern die Leistung und haben <b>Gesundheitsbezug</b> (Herz-Kreislauf, Haltung, Verletzungsvorbeugung).</li>
+      <li><b>Einflussfaktoren:</b> Ernährung (Eiweiß, Kohlenhydrate, Wasser), Schlaf/Erholung, Motivation/Psyche, Alter, Geschlecht, Genetik.</li>
+    </ul>
+  </details>
+
+  <details class="card">
+    <summary>③ Koordinative Fähigkeiten</summary>
+    <p><b>Koordination</b> = Zusammenwirken von <b>Zentralnervensystem</b> und <b>Skelettmuskulatur</b> innerhalb eines gezielten Bewegungsablaufs. Koordinative Fähigkeiten befähigen, Bewegungen in vorhersehbaren und unvorhersehbaren Situationen <b>sicher und ökonomisch</b> zu beherrschen, schnell zu lernen und konstant zu wiederholen. <span class="tag">→ QUALITÄT der Bewegungsausführung</span></p>
+    <h3>Die 7 koordinativen Fähigkeiten</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Fähigkeit</th><th>Kurz erklärt</th></tr>
+      <tr><td><b>Reaktionsfähigkeit</b></td><td>schnell auf Signale reagieren</td></tr>
+      <tr><td><b>Umstellungsfähigkeit</b></td><td>sich an veränderte Situationen anpassen</td></tr>
+      <tr><td><b>Orientierungsfähigkeit</b></td><td>sich an räumliche Gegebenheiten anpassen</td></tr>
+      <tr><td><b>Differenzierungsfähigkeit</b></td><td>feinmotorische Teilphasen aufeinander abstimmen</td></tr>
+      <tr><td><b>Kopplungsfähigkeit</b></td><td>Teilbewegungen aufeinander abstimmen</td></tr>
+      <tr><td><b>Gleichgewichtsfähigkeit</b></td><td>den Körper im Gleichgewicht halten</td></tr>
+      <tr><td><b>Rhythmisierungsfähigkeit</b></td><td>Bewegung an einen Rhythmus anpassen</td></tr>
+    </table></div>
+    <div class="merke"><b>Eselsbrücke „RUODKGR“:</b> <b>R</b>eaktion, <b>U</b>mstellung, <b>O</b>rientierung, <b>D</b>ifferenzierung, <b>K</b>opplung, <b>G</b>leichgewicht, <b>R</b>hythmisierung. Oder als Satz: „Robert Und Olga Dehnen Knie, Gehen Rückwärts.“</div>
+    <h3>KAR-Modell (Koordinations-Anforderungs-Regler-Modell)</h3>
+    <p>Beschreibt die koordinativen <b>Anforderungen einer Bewegungsaufgabe</b>. Zwei Gruppen:</p>
+    <ul>
+      <li><b>Informationsanforderungen</b> (über die <b>Analysatoren</b>): optisch, akustisch, taktil, kinästhetisch, vestibulär (+ Gleichgewichtsanforderungen)</li>
+      <li><b>Druckbedingungen</b> (je höher, desto schwieriger): <b>P</b>räzision, <b>Z</b>eit, <b>K</b>omplexität, <b>S</b>ituation, <b>B</b>elastung → <b>„PZKSB“</b></li>
+    </ul>
+    <p><b>Analysator</b> = gesamte Funktionseinheit zur Aufnahme, Weiterleitung und Verarbeitung eines Sinnesreizes: <b>Rezeptor → afferente Nervenbahn → Gehirn/Hirnrinde (ZNS)</b>. Nicht nur das Sinnesorgan!</p>
+    <div class="tablewrap"><table>
+      <tr><th>Druckbedingung</th><th>Bedeutung</th><th>Beispiel</th></tr>
+      <tr><td><b>Zeitdruck</b></td><td>Zeitminimierung / Geschwindigkeitsmaximierung</td><td>Sprint, Konter im Handball</td></tr>
+      <tr><td><b>Präzisionsdruck</b></td><td>höchstmögliche Genauigkeit</td><td>Elfmeter in die Ecke, Dart</td></tr>
+      <tr><td><b>Komplexitätsdruck</b></td><td>viele <b>hintereinander</b> geschaltete (sukzessive) Anforderungen</td><td>Turnkür, Schrittfolge beim Korbleger</td></tr>
+      <tr><td><b>Organisationsdruck</b></td><td>viele <b>gleichzeitige</b> (simultane) Anforderungen</td><td>Dribbeln und Mitspieler beobachten</td></tr>
+      <tr><td><b>Variabilitätsdruck / Situationsdruck</b></td><td>wechselnde Umgebungs-/Situationsbedingungen</td><td>Spiel auf Rasen/Regen/Gegner ändern sich</td></tr>
+      <tr><td><b>Belastungsdruck</b></td><td>unter physisch-konditioneller oder psychischer Beanspruchung</td><td>Technik bei Müdigkeit, Wettkampfstress</td></tr>
+    </table></div>
+    <p class="muted">Die Beispiele sind Vorschläge von mir. In der Stunde habt ihr eigene gesammelt. Die Definitionen stammen aus der Folie.</p>
+  </details>
+
+  <details class="card">
+    <summary>④ Trainingsbelastung &amp; Superkompensation</summary>
+    <h3>Allgemeine Gesundheit („Gesundheitswaage“)</h3>
+    <p>Gesundheit ist eher <b>kein fester Zustand</b>, sondern das <b>Streben nach Gleichgewicht zwischen Belastungen und Ressourcen</b>. Waage: links <b>Kräfte &amp; Ressourcen</b> (Selbstvertrauen, Sinn im Leben, Freundeskreis/Familie, finanzielle Sicherheit, gesunde Lebensweise …), rechts <b>Belastungen</b> (körperliche Gebrechen, Depression, Lärm, Verschmutzung, Abschied …).</p>
+    <p class="muted">Hinweis: Auf einer Folie steht „kein Zustand des … Wohlbefindens“, auf einer anderen „ein Zustand“. Gemeint ist die Idee vom <i>Gleichgewicht</i>. Sag in der Klausur diese Idee.</p>
+    <h3>Reizparameter (Trainingsbelastung)</h3>
+    <p>Die Belastung wird durch vier Größen beschrieben, die sich gegenseitig beeinflussen: <b>Reizintensität</b> (wie stark), <b>Reizdauer</b> (wie lange), <b>Reizdichte</b> (Verhältnis Belastung/Pause), <b>Reizhäufigkeit</b> bzw. Trainingshäufigkeit (wie oft).</p>
+    <h3>Arten von Reizen → Effekt</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Reiz</th><th>Effekt</th></tr>
+      <tr><td>unterschwellig</td><td>Leistungsabfall</td></tr>
+      <tr><td>schwach überschwellig</td><td>Leistungserhalt</td></tr>
+      <tr><td><b>klar überschwellig</b></td><td><b>Leistungssteigerung</b> ✔</td></tr>
+      <tr><td>zu hoch</td><td>Leistungsabfall</td></tr>
+    </table></div>
+    <h3>Superkompensation</h3>
+    <svg viewBox="0 0 640 260" width="100%" role="img" aria-label="Kurve der Superkompensation">
+      <line x1="40" y1="130" x2="620" y2="130" stroke="currentColor" stroke-width="2" opacity=".5"/>
+      <line x1="40" y1="15" x2="40" y2="245" stroke="currentColor" stroke-width="2" opacity=".5"/>
+      <path d="M70 130 C90 215 130 225 170 205 C230 170 270 105 330 100 C380 98 410 118 440 130" fill="none" stroke="#dc2626" stroke-width="3.5"/>
+      <path d="M300 130 C320 100 380 98 440 130 Z" fill="#fde68a" opacity=".8"/>
+      <line x1="70" y1="40" x2="70" y2="130" stroke="currentColor" stroke-dasharray="4 4" opacity=".6"/>
+      <text x="48" y="32" font-size="13">① Trainingsreiz (überschwellig)</text>
+      <text x="85" y="238" font-size="13">② Ermüdung / Leistung sinkt</text>
+      <text x="200" y="190" font-size="13" transform="rotate(-35 200 190)">③ Erholung (Kompensation)</text>
+      <text x="300" y="82" font-size="13" font-weight="700">④ Superkompensation</text>
+      <text x="450" y="125" font-size="13">⑤ danach zurück zum Ausgangsniveau</text>
+      <text x="45" y="12" font-size="12">Leistungsfähigkeit</text>
+      <text x="575" y="148" font-size="12">Zeit</text>
+    </svg>
+    <p>Ein <b>überschwelliger Reiz</b> senkt zuerst die Leistungsfähigkeit (Ermüdung). In der <b>Erholungsphase</b> (Kompensation) steigt sie zurück und <b>über</b> das Ausgangsniveau (<b>Super-/Überkompensation</b>). Setzt man dort einen <b>neuen Reiz</b>, steigt das Leistungsniveau Treppe für Treppe. Passiert nichts, fällt es wieder ab.</p>
+    <h3>Reiz und Erholungszeit</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Pause</th><th>Folge</th></tr>
+      <tr><td><b>optimal</b> (neuer Reiz im Superkompensationsgipfel)</td><td>Leistungsniveau <b>steigt</b></td></tr>
+      <tr><td><b>zu kurz</b> (neuer Reiz in der Ermüdung)</td><td>Stagnation, bei dauerhaft zu kurz: <b>absinkend → Übertraining</b></td></tr>
+      <tr><td><b>zu lang</b> (z. B. 1 Woche Pause, Effekt verpufft)</td><td>stagnierend bzw. absinkend</td></tr>
+    </table></div>
+    <div class="merke"><b>Merke:</b> Training setzt den Reiz, <b>aufgebaut wird in der Pause</b>. Zu wenig Pause = Übertraining, zu viel = Effekt weg.</div>
+  </details>
+
+  <details class="card">
+    <summary>⑤ Trainingsmethoden</summary>
+    <h3>Begriffe zur Belastungssteuerung</h3>
+    <ul>
+      <li><b>Belastungsintensität:</b> Stärke der Belastung in % der max. Leistungsfähigkeit (30–100 %)</li>
+      <li><b>Belastungsumfang:</b> Häufigkeit der Belastung (Anzahl Wiederholungen, Distanz …)</li>
+      <li><b>Belastungsdauer:</b> Dauer der Aktivität (sehr kurz bis sehr lang)</li>
+      <li><b>Pausenlänge:</b> Erholungszeit zwischen den Belastungen (ohne / kurz bis vollständig)</li>
+    </ul>
+    <h3>Die 4 Trainingsmethoden</h3>
+    <ul>
+      <li><b>Dauermethode:</b> lange, <b>ununterbrochene</b> Belastung ohne Pause (Kurve steigt gleichmäßig an)</li>
+      <li><b>Intervallmethode:</b> Belastung wechselt mit <b>unvollständigen („lohnenden“) Pausen</b> ab, Erholung nie komplett</li>
+      <li><b>Wiederholungsmethode:</b> hohe Intensität, Pause bis zur <b>vollständigen Erholung</b> (Kurve fällt zwischen den Wiederholungen weit ab)</li>
+      <li><b>Wettkampfmethode:</b> Belastung im Wettkampf bzw. wettkampfnah, auch <i>under-/overdistance</i> (kürzer/länger als die Wettkampfstrecke)</li>
+    </ul>
+    <h3>Belastungsgefüge</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Methode</th><th>Intensität</th><th>Umfang</th><th>Pausen</th><th>Dauer</th><th>Wirkung</th><th>Ziel</th></tr>
+      <tr><td><b>Wiederholung</b></td><td>maximal</td><td>sehr niedrig</td><td>sehr lang</td><td>sehr kurz</td><td>anaerobe Kapazität</td><td>Maximalkraft, Schnellkraft, Schnelligkeit, Schnelligkeitsausdauer</td></tr>
+      <tr><td><b>Intensive Intervall</b></td><td>submaximal</td><td>niedrig</td><td>länger („lohnend“)</td><td>kurz</td><td>↑ anaerob</td><td>Kraft-/Schnelligkeitsausdauer</td></tr>
+      <tr><td><b>Extensive Intervall</b></td><td>mittel bis leicht</td><td>mittel bis hoch</td><td>mittel bis kurz („lohnend“)</td><td>mittel bis lang</td><td>↓ aerob</td><td>Kraftausdauer, Grundlagenausdauer</td></tr>
+      <tr><td><b>Dauer</b></td><td>gering bis mittel</td><td>(sehr) hoch</td><td>keine / Einzelreiz</td><td>lang</td><td>aerobe Kapazität</td><td>Grundlagenausdauer</td></tr>
+    </table></div>
+    <div class="merke"><b>Merke (Trend von Wiederholung → Dauer):</b> Intensität ↓, Umfang ↑, Pausen ↓, Dauer ↑, Wirkung von anaerob → aerob. Wiederholung = „kurz &amp; knallhart“, Dauer = „lang &amp; locker“.</div>
+  </details>
+</section>
+
+<!-- ============ KARTEIKARTEN ============ -->
+<section id="cards">
+  <div class="card">
+    <h2>Karteikarten</h2>
+    <p class="muted">Frage lesen, <b>laut antworten</b> (wichtig!), dann Karte anklicken/Leertaste. Wusstest du es → „Gewusst“, sonst „Nochmal“. Nochmal-Karten kommen wieder, bis alles sitzt. Dein Fortschritt wird gespeichert.</p>
+    <div class="deckbar" id="deckbar"></div>
+    <div class="prog"><i id="cprog"></i></div>
+    <div class="muted" id="cinfo"></div>
+  </div>
+  <div id="cardarea"></div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz">
+  <div id="quizarea"></div>
+</section>
+
+</main>
+
+<script>
+/* ===================== DATEN ===================== */
+const TOPICS = {
+  begriffe:"① Begriffe", kondi:"② Kondition", koordi:"③ Koordination",
+  belastung:"④ Belastung", methoden:"⑤ Methoden"
+};
+
+// [topic, Frage, Antwort]
+const CARDS = [
+ // Begriffe
+ ["begriffe","Was ist die Aufgabe von Theorie, was von Praxis im Sport?","Theorie = verstehen und planen. Praxis = Bewegung. Beides gehört untrennbar zusammen."],
+ ["begriffe","Nenne die 3 Merkmale sportlicher Bewegung.","1. zweckfrei  2. nicht maschinell (eigene Aktivität)  3. durch sporttypische Bewegungsaufgaben bestimmt."],
+ ["begriffe","Definiere „sportliches Training“.","Planmäßig gesteuerter Prozess mit inhaltlichen, methodischen und organisatorischen Maßnahmen, entsprechend einer Zielvorstellung, um Zustandsänderungen der sportmotorischen Leistung, Handlungsfähigkeit und des Verhaltens zu entwickeln."],
+ ["begriffe","Was ist das Ziel des sportlichen Trainings?","Die sportliche Leistungsfähigkeit verbessern."],
+ ["begriffe","Üben vs. trainieren – was ist der Unterschied?","Üben: mehrfaches Wiederholen von Bewegungsabläufen → Ziel: Koordination und Bewegungsfluss verbessern.\nTrainieren: planmäßig gesteuerte körperliche Anpassung (Prozess) → Ziel: sportliche Leistungsfähigkeit verbessern."],
+ ["begriffe","Welche Bausteine hat das sportliche Training (Schaubild)?","Technik, Kondition, Trainingsprinzipien, Trainingsmethoden, Motivation/Wille, Taktik."],
+ ["begriffe","Nenne Faktoren, die die sportliche Leistung beeinflussen.","Technik (koordinative Fähigkeiten, Bewegungsfertigkeiten), Kondition (Kraft, Schnelligkeit, Ausdauer, Flexibilität), psychische, taktisch-kognitive und soziale Fähigkeiten, veranlagungsbedingte/konstitutionelle/gesundheitliche Faktoren."],
+ ["begriffe","Nenne mindestens 5 Bausteine der Sporttheorie (Wissenschaften).","Sportpädagogik, -medizin, -geschichte, -biologie, -psychologie, -soziologie, Trainingswissenschaft, Bewegungswissenschaft."],
+ // Kondition
+ ["kondi","Definiere Kondition.","Körperlicher Leistungszustand aus dem Zusammenspiel von Kraft, Ausdauer, Schnelligkeit und Beweglichkeit. Er befähigt, Leistungen über einen Zeitraum zu erbringen und Belastungen standzuhalten."],
+ ["kondi","Konditionell vs. koordinativ: Quantität oder Qualität?","Konditionell → Quantität der Bewegungsausführung.\nKoordinativ → Qualität der Bewegungsausführung."],
+ ["kondi","Nenne die 4 konditionellen Fähigkeiten.","Kraft, Schnelligkeit, Ausdauer, Beweglichkeit."],
+ ["kondi","Definiere Kraft. Welche 3 Arbeitsweisen gibt es?","Fähigkeit des Nerv-Muskel-Systems, Widerstände zu überwinden (konzentrisch), ihnen entgegenzuwirken (exzentrisch) oder sie zu halten (statisch)."],
+ ["kondi","Nenne die Kraftfähigkeiten.","Maximalkraft, Schnellkraft, Kraftausdauer (und Reaktivkraft in der Übersicht)."],
+ ["kondi","Maximalkraft: Definition + wovon hängt sie ab?","Höchstmögliche Kraft bei maximaler Kontraktion. Abhängig von Muskelquerschnitt, intermuskulärer und intramuskulärer Koordination. Bsp.: Bankdrücken mit max. Gewicht."],
+ ["kondi","Schnellkraft: Definition + wovon hängt sie ab?","Körper/Körperteile/Gegenstände mit maximaler Geschwindigkeit bewegen. Abhängig vom Typ der aktivierten Muskelfasern und vom Muskelquerschnitt. Bsp.: Kugelstoßen, Medizinball."],
+ ["kondi","Kraftausdauer: Definition + Unterteilung?","Ermüdungswiderstandsfähigkeit. Allgemein (Gesamtorganismus) vs. lokal (Teilsysteme, z. B. Arme/Beine). Lokal: dynamisch (Rudern) und statisch (Skiabfahrt, Hanteln halten)."],
+ ["kondi","Definiere Schnelligkeit.","Höchstmögliche Reaktions- und Bewegungsgeschwindigkeit aufgrund kognitiver Prozesse, maximaler Willenskraft und der Funktionalität des Nerv-Muskel-Systems."],
+ ["kondi","Nenne die 3 Schnelligkeitsfähigkeiten.","Reaktionsschnelligkeit, Frequenzschnelligkeit, Aktionsschnelligkeit."],
+ ["kondi","Reaktionsschnelligkeit – Definition + Beispiel?","In kürzester Zeit auf einen Reiz (optisch, taktil, akustisch) reagieren. Bsp.: Startkommando beim 100-m-Sprint."],
+ ["kondi","Frequenzschnelligkeit – Definition + Beispiel?","Anzahl möglicher Bewegungen pro Zeiteinheit. Bsp.: Schrittfrequenz im Sprint, Tretfrequenz Radsprint, Schlagfrequenz Rudern."],
+ ["kondi","Aktionsschnelligkeit – Definition + Beispiel?","Azyklische Bewegungen mit höchster Geschwindigkeit gegen geringe Widerstände. Bsp.: Boxschlag, Übersteiger im Fußball."],
+ ["kondi","Definiere Ausdauer (psychisch + physisch).","Psychophysische Ermüdungswiderstandsfähigkeit. Psychisch: einem Abbruchreiz möglichst lange widerstehen. Physisch: Ermüdungswiderstand des Gesamtorganismus bzw. von Teilsystemen."],
+ ["kondi","Kurzzeitausdauer: Dauer, Energie, Beispiel?","45 s – 2 min. Anaerob (alaktazid über Kreatinphosphat, laktazid über Glukose → Laktat). Bsp.: 400-m-Sprint."],
+ ["kondi","Mittelzeitausdauer: Dauer, Energie, Beispiel?","2 – 8 min. Zunehmend aerob, Brennstoff Kohlenhydrate. Bsp.: 2000-m-Lauf, Tanzaufführung."],
+ ["kondi","Langzeitausdauer: Dauer, Energie, Beispiel?","Über 8 min bis Stunden. Ganz aerob: Kohlenhydrate, bei sehr langer Dauer auch Fette. Bsp.: Marathon, Triathlon."],
+ ["kondi","Definiere Beweglichkeit. Wann ist die Wirbelsäule am beweglichsten?","Fähigkeit, Bewegungen mit großer Schwingungsweite in einem oder mehreren Gelenken auszuführen. Wirbelsäule am beweglichsten mit 8/9 Jahren, erste Einschränkungen ab ca. 10."],
+ ["kondi","Was beeinflusst die konditionellen Fähigkeiten?","Ernährung (Eiweiß, Kohlenhydrate, Wasser), Schlaf und Erholung, Motivation/Psyche, Alter, Geschlecht, Genetik."],
+ ["kondi","Warum sind konditionelle Fähigkeiten im Alltag wichtig?","Gesundheit: Herz-Kreislauf-System, Körperhaltung, Verletzungsvorbeugung; außerdem bessere Leistungsfähigkeit. In jeder Sportart wichtig, meist als Kombination mehrerer."],
+ // Koordination
+ ["koordi","Definiere Koordination.","Zusammenwirken von Zentralnervensystem und Skelettmuskulatur innerhalb eines gezielten Bewegungsablaufs. Ermöglicht sicheres, ökonomisches Beherrschen von Bewegungen in vorhersehbaren und unvorhersehbaren Situationen, schnelles Lernen und konstantes Wiederholen."],
+ ["koordi","Nenne alle 7 koordinativen Fähigkeiten.","Differenzierung, Orientierung, Reaktion, Kopplung, Rhythmisierung, Umstellung, Gleichgewicht."],
+ ["koordi","Differenzierungsfähigkeit?","Feinmotorische Teilphasen/Teilbewegungen genau aufeinander abstimmen (z. B. Kraftdosierung)."],
+ ["koordi","Orientierungsfähigkeit?","Sich an räumliche Gegebenheiten anpassen / Lage und Bewegung im Raum bestimmen."],
+ ["koordi","Reaktionsfähigkeit (koordinativ)?","Schnell auf Signale reagieren."],
+ ["koordi","Kopplungsfähigkeit?","Teilbewegungen (z. B. Arme, Beine) aufeinander abstimmen."],
+ ["koordi","Rhythmisierungsfähigkeit?","Bewegung an einen (vorgegebenen oder verinnerlichten) Rhythmus anpassen."],
+ ["koordi","Umstellungsfähigkeit?","Sich an veränderte Situationen anpassen, Handlung umstellen."],
+ ["koordi","Gleichgewichtsfähigkeit?","Den Körper im Gleichgewicht halten bzw. wiederherstellen."],
+ ["koordi","Wofür steht KAR-Modell, und was beschreibt es?","Koordinations-Anforderungs-Regler-Modell. Beschreibt die koordinativen Anforderungen von Bewegungsaufgaben: Informationsanforderungen + Druckbedingungen."],
+ ["koordi","Nenne die Informationsanforderungen (Analysatoren).","optisch, akustisch, taktil, kinästhetisch, vestibulär (+ Gleichgewichtsanforderungen)."],
+ ["koordi","Was ist ein Analysator? Woraus besteht er?","Gesamte Funktionseinheit zur Aufnahme, Weiterleitung und Verarbeitung eines Sinnesreizes: Rezeptor → afferente Nervenbahn → Gehirn/Hirnrinde (ZNS). Nicht nur das Sinnesorgan."],
+ ["koordi","Nenne die Druckbedingungen (Merkwort).","PZKSB: Präzisionsdruck, Zeitdruck, Komplexitätsdruck, Situationsdruck, Belastungsdruck (Folie nennt zusätzlich Organisations- und Variabilitätsdruck)."],
+ ["koordi","Zeitdruck vs. Präzisionsdruck?","Zeitdruck: Zeit minimieren / Geschwindigkeit maximieren. Präzisionsdruck: höchstmögliche Genauigkeit."],
+ ["koordi","Komplexitätsdruck vs. Organisationsdruck?","Komplexität: viele Anforderungen hintereinander (sukzessiv). Organisation: viele Anforderungen gleichzeitig (simultan)."],
+ ["koordi","Variabilitäts-/Situationsdruck vs. Belastungsdruck?","Variabilität/Situation: wechselnde Umgebungs- bzw. Situationsbedingungen. Belastung: Anforderungen unter physisch-konditioneller oder psychischer Beanspruchung."],
+ // Belastung
+ ["belastung","Wie sieht Gesundheit laut „Gesundheitswaage“ aus?","Nicht ein fester Zustand, sondern Streben nach Gleichgewicht zwischen Belastungen und Kräften/Ressourcen."],
+ ["belastung","Nenne die Größen der Trainingsbelastung (Reizparameter).","Reizintensität, Reizdauer, Reizdichte, Reizhäufigkeit (Trainingshäufigkeit) – sie beeinflussen sich gegenseitig."],
+ ["belastung","Welche Reizarten gibt es und was bewirken sie?","unterschwellig → Leistungsabfall; schwach überschwellig → Leistungserhalt; klar überschwellig → Leistungssteigerung; zu hoch → Leistungsabfall."],
+ ["belastung","Erkläre die Superkompensation in 4 Schritten.","1. Überschwelliger Reiz  2. Leistung sinkt (Ermüdung)  3. Erholung/Kompensation  4. Leistung steigt über das Ausgangsniveau (Superkompensation). Ohne neuen Reiz fällt sie wieder ab."],
+ ["belastung","Wann sollte der nächste Trainingsreiz gesetzt werden?","Im Bereich der Superkompensation (optimale Pause). Dann steigt das Leistungsniveau stufenweise."],
+ ["belastung","Was passiert bei zu kurzer Pause?","Neuer Reiz kommt in der Ermüdung → Stagnation, bei Dauer sogar absinkende Leistung (Übertraining)."],
+ ["belastung","Was passiert bei zu langer Pause?","Die Superkompensation verpufft (z. B. 1 Woche Pause) → stagnierend bzw. absinkend, kein Trainingseffekt."],
+ // Methoden
+ ["methoden","Nenne die 4 Begriffe zur Belastungssteuerung.","Belastungsintensität, Belastungsumfang, Belastungsdauer, Pausenlänge."],
+ ["methoden","Belastungsintensität – Definition?","Stärke der Belastung in Prozent der maximalen Leistungsfähigkeit (30–100 %)."],
+ ["methoden","Belastungsumfang – Definition?","Häufigkeit der Belastung (Anzahl Wiederholungen, Distanz usw.)."],
+ ["methoden","Nenne die 4 Trainingsmethoden.","Dauermethode, Intervallmethode, Wiederholungsmethode, Wettkampfmethode."],
+ ["methoden","Dauermethode – Merkmale + Ziel?","Lange, ununterbrochene Belastung, geringe bis mittlere Intensität, (sehr) hoher Umfang, keine Pause. Wirkung aerob. Ziel: Grundlagenausdauer."],
+ ["methoden","Intervallmethode – Merkmale?","Belastung im Wechsel mit unvollständigen („lohnenden“) Pausen. Intensiv: submaximal, kurze Dauer → Kraft-/Schnelligkeitsausdauer. Extensiv: mittel bis leicht, mittel bis lang → Kraftausdauer/Grundlagenausdauer."],
+ ["methoden","Wiederholungsmethode – Merkmale + Ziel?","Maximale Intensität, sehr niedriger Umfang, sehr kurze Dauer, sehr lange (vollständige) Pausen. Anaerob. Ziel: Maximalkraft, Schnellkraft, Schnelligkeit, Schnelligkeitsausdauer."],
+ ["methoden","Wettkampfmethode – Merkmale?","Belastung im Wettkampf oder wettkampfnah, auch mit under-/overdistance (kürzere bzw. längere Strecke als im Wettkampf)."],
+ ["methoden","Welche Methode für Grundlagenausdauer? Welche für Maximalkraft?","Grundlagenausdauer → Dauermethode (auch extensive Intervall). Maximalkraft → Wiederholungsmethode."],
+ ["methoden","Intensive vs. extensive Intervallmethode?","Intensiv: höhere Intensität (submaximal), niedrigerer Umfang, kürzere Dauer, längere Pause. Extensiv: mittlere/leichte Intensität, hoher Umfang, längere Dauer, kürzere Pause."],
+];
+
+// [topic, Frage, [Optionen], richtigIndex, Erklärung]
+const QUIZ = [
+ ["begriffe","Welches ist KEIN Merkmal sportlicher Bewegung?",["zweckfrei","maschinell erzeugt","durch sporttypische Bewegungsaufgaben bestimmt","eigene Aktivität"],1,"Sportliche Bewegung darf nicht maschinell erfolgen, sie ist eigene Aktivität."],
+ ["begriffe","Was ist das Ziel des Übens?",["Leistungsfähigkeit steigern","Koordination und Bewegungsfluss verbessern","Muskelmasse aufbauen","Wettkämpfe gewinnen"],1,"Üben = Wiederholen von Bewegungsabläufen → Koordination/Bewegungsfluss. Trainieren → Leistungsfähigkeit."],
+ ["begriffe","Sportliches Training ist …",["ein zufälliges Ausprobieren","ein planmäßig gesteuerter Prozess","nur Wiederholen von Techniken","ein Zustand"],1,"Training = planmäßig gesteuerter Prozess mit Zielvorstellung."],
+ ["begriffe","Was gehört zur „Technik“ als Leistungsfaktor?",["Kraft und Ausdauer","Koordinative Fähigkeiten und Bewegungsfertigkeiten","Motivation und Wille","Soziale Fähigkeiten"],1,"Technik = koordinative Fähigkeiten + Bewegungsfertigkeiten."],
+ ["begriffe","Theorie bedeutet im Sport …",["Bewegung","verstehen und planen","Wettkampf","Aufwärmen"],1,"Theorie = verstehen und planen. Praxis = Bewegung."],
+ ["kondi","Welche Fähigkeiten gehören zur Kondition?",["Kraft, Ausdauer, Schnelligkeit, Beweglichkeit","Gleichgewicht, Rhythmus, Reaktion, Orientierung","Technik, Taktik, Psyche, Wille","Kraft, Technik, Koordination, Taktik"],0,"Konditionell: Kraft, Ausdauer, Schnelligkeit, Beweglichkeit."],
+ ["kondi","Konditionelle Fähigkeiten beschreiben vor allem …",["die Qualität der Bewegung","die Quantität der Bewegungsausführungen","die Taktik","die Motivation"],1,"Kondition = Quantität, Koordination = Qualität."],
+ ["kondi","Bremsendes „Nachgeben“ gegen einen Widerstand (z. B. Gewicht langsam ablassen) nennt man …",["konzentrisch","exzentrisch","statisch","isometrisch-explosiv"],1,"Exzentrisch = dem Widerstand entgegenwirken/nachgeben."],
+ ["kondi","Kugelstoßen trainiert vor allem …",["Maximalkraft","Schnellkraft","Kraftausdauer","Reaktivkraft"],1,"Schnellkraft: Gegenstand mit maximaler Geschwindigkeit bewegen."],
+ ["kondi","Wovon hängt die Maximalkraft ab?",["Muskelquerschnitt sowie inter- und intramuskulärer Koordination","nur vom Alter","vom Muskelfasertyp allein","von der Atemfrequenz"],0,"Maximalkraft: Muskelquerschnitt + inter-/intramuskuläre Koordination."],
+ ["kondi","Ein Boxer schlägt auf einen Sandsack. Welche Fähigkeit?",["Reaktionsschnelligkeit","Frequenzschnelligkeit","Aktionsschnelligkeit","Langzeitausdauer"],2,"Aktionsschnelligkeit = azyklische Bewegung gegen geringen Widerstand mit höchster Geschwindigkeit."],
+ ["kondi","Die Schrittfrequenz im Sprint gehört zu …",["Reaktionsschnelligkeit","Aktionsschnelligkeit","Frequenzschnelligkeit","Maximalkraft"],2,"Frequenzschnelligkeit = Anzahl der Bewegungen pro Zeiteinheit."],
+ ["kondi","Reaktion auf den Startschuss beim 100-m-Lauf ist …",["Reaktionsschnelligkeit","Frequenzschnelligkeit","Kurzzeitausdauer","Rhythmisierung"],0,"Zeit zwischen Reiz (akustisch) und motorischer Aktion."],
+ ["kondi","Wie lange dauert Kurzzeitausdauer?",["bis 10 s","45 s – 2 min","2 – 8 min","über 8 min"],1,"Kurz 45 s–2 min, Mittel 2–8 min, Lang >8 min."],
+ ["kondi","Welche Ausdauer läuft gänzlich aerob und verbrennt bei langer Dauer auch Fett?",["Kurzzeitausdauer","Mittelzeitausdauer","Langzeitausdauer","Maximalkraft"],2,"Langzeitausdauer: über 8 min, aerob, später Fettverbrennung."],
+ ["kondi","Ein 400-m-Sprint wird hauptsächlich bereitgestellt durch …",["aeroben Fettabbau","anaerobe Prozesse","nur Sauerstoff","Eiweißverbrennung"],1,"Kurzzeitausdauer: anaerob (Kreatinphosphat/Glukose → Laktat)."],
+ ["kondi","Wann ist die Wirbelsäule am beweglichsten?",["im Alter von 8/9 Jahren","mit 15 Jahren","mit 25 Jahren","mit 40 Jahren"],0,"Mit 8/9 am beweglichsten, ab ca. 10 erste Einschränkungen."],
+ ["kondi","Was beeinflusst die konditionellen Fähigkeiten NICHT?",["Ernährung","Schlaf und Erholung","Alter, Geschlecht, Genetik","die Schuhfarbe"],3,"Beeinflusst durch Ernährung, Schlaf, Psyche, Alter, Geschlecht, Genetik."],
+ ["koordi","Koordination ist das Zusammenwirken von …",["Herz und Lunge","Zentralnervensystem und Skelettmuskulatur","Knochen und Sehnen","Muskeln und Fettgewebe"],1,"Koordination = ZNS + Skelettmuskulatur im gezielten Bewegungsablauf."],
+ ["koordi","Wie viele koordinative Fähigkeiten gibt es laut Folien?",["4","5","7","9"],2,"7: Differenzierung, Orientierung, Reaktion, Kopplung, Rhythmisierung, Umstellung, Gleichgewicht."],
+ ["koordi","Teilbewegungen (z. B. Arme und Beine) aufeinander abstimmen = …",["Differenzierungsfähigkeit","Kopplungsfähigkeit","Orientierungsfähigkeit","Umstellungsfähigkeit"],1,"Kopplungsfähigkeit."],
+ ["koordi","Sich an veränderte Situationen anpassen = …",["Umstellungsfähigkeit","Rhythmisierungsfähigkeit","Gleichgewichtsfähigkeit","Differenzierungsfähigkeit"],0,"Umstellungsfähigkeit."],
+ ["koordi","Bewegung an einen Takt/Musik anpassen = …",["Rhythmisierungsfähigkeit","Orientierungsfähigkeit","Reaktionsfähigkeit","Kopplungsfähigkeit"],0,"Rhythmisierungsfähigkeit."],
+ ["koordi","Wofür steht „KAR“ im KAR-Modell?",["Kraft-Ausdauer-Regler","Koordinations-Anforderungs-Regler","Kondition-Aktivität-Reaktion","Körper-Analyse-Regler"],1,"Koordinations-Anforderungs-Regler-Modell."],
+ ["koordi","Welche gehören zu den Informationsanforderungen (Analysatoren)?",["optisch, akustisch, taktil, kinästhetisch, vestibulär","Zeit, Präzision, Komplexität","Kraft, Ausdauer, Schnelligkeit","Mut, Wille, Taktik"],0,"Fünf Analysatoren: optisch, akustisch, taktil, kinästhetisch, vestibulär."],
+ ["koordi","Wofür steht „PZKSB“?",["Präzisions-, Zeit-, Komplexitäts-, Situations-, Belastungsdruck","Planung, Zeit, Kraft, Schnelligkeit, Beweglichkeit","Puls, Zeit, Kondition, Sprint, Belastung","Präzision, Ziel, Können, Spaß, Bewegung"],0,"Die fünf Druckbedingungen."],
+ ["koordi","Aus welchen Teilen besteht ein Analysator?",["nur Auge und Ohr","Rezeptor, afferente Nervenbahn, Gehirn/Hirnrinde","Muskel, Sehne, Knochen","Herz, Lunge, Blut"],1,"Der gesamte Weg von Aufnahme bis Verarbeitung, nicht nur das Sinnesorgan."],
+ ["koordi","Viele Anforderungen müssen GLEICHZEITIG bewältigt werden. Welcher Druck?",["Komplexitätsdruck","Organisationsdruck","Zeitdruck","Präzisionsdruck"],1,"Organisationsdruck = simultan. Komplexitätsdruck = nacheinander."],
+ ["belastung","Welcher Reiz führt zur Leistungssteigerung?",["unterschwellig","schwach überschwellig","klar überschwellig","zu hoch"],2,"Nur klar überschwellige Reize steigern die Leistung."],
+ ["belastung","Ein zu hoher Reiz führt zu …",["Leistungssteigerung","Leistungserhalt","Leistungsabfall","Superkompensation"],2,"Zu hoch → Leistungsabfall (ebenso unterschwellig)."],
+ ["belastung","Schwach überschwellige Reize bewirken …",["Leistungsabfall","Leistungserhalt","Leistungssteigerung","Übertraining"],1,"Leistungserhalt."],
+ ["belastung","Was passiert direkt nach einem überschwelligen Trainingsreiz?",["Leistung steigt sofort","Leistungsfähigkeit sinkt zunächst (Ermüdung)","Leistung bleibt gleich","man ist sofort besser"],1,"Erst Ermüdung, dann Erholung, dann Superkompensation."],
+ ["belastung","Superkompensation bedeutet …",["Leistung sinkt unter Ausgangsniveau","Leistung steigt in der Erholung über das Ausgangsniveau","Training ohne Pause","Dauerbelastung"],1,"Überkompensation: Körper baut mehr auf, als abgebaut wurde."],
+ ["belastung","Wenn die Pause immer zu kurz ist, droht …",["Superkompensation","Übertraining","Leistungserhalt","Mehr Beweglichkeit"],1,"Absinkendes Leistungsniveau = Übertraining."],
+ ["belastung","Wann setzt man den nächsten Reiz optimal?",["sofort danach","im Bereich der Superkompensation","nach mehreren Wochen","nie"],1,"Im Gipfel der Superkompensation."],
+ ["belastung","Welche Größe gehört NICHT zu den Reizparametern?",["Reizdauer","Reizintensität","Reizdichte","Reizfarbe"],3,"Reizintensität, -dauer, -dichte, -häufigkeit."],
+ ["belastung","Gesundheit ist laut „Gesundheitswaage“ …",["ein fester Zustand","Streben nach Gleichgewicht zwischen Belastung und Ressourcen","die Abwesenheit von Sport","nur körperliche Fitness"],1,"Waage: Kräfte/Ressourcen gegen Belastungen."],
+ ["methoden","Welche Methode hat „maximale Intensität, sehr kurze Dauer, sehr lange Pausen“?",["Dauermethode","Extensive Intervallmethode","Wiederholungsmethode","Wettkampfmethode"],2,"Wiederholungsmethode → Maximalkraft/Schnellkraft/Schnelligkeit."],
+ ["methoden","Für Grundlagenausdauer eignet sich am besten …",["Wiederholungsmethode","Dauermethode","Maximalkraftversuch","Sprints mit langen Pausen"],1,"Dauermethode: lang, ununterbrochen, aerob."],
+ ["methoden","„Lohnende Pause“ gehört zu …",["Intervallmethode","Dauermethode","Wiederholungsmethode","Reaktionsübung"],0,"Intervall: Pause bewusst unvollständig, die Erholung ist nicht komplett."],
+ ["methoden","Was beschreibt die Belastungsintensität?",["die Anzahl der Wiederholungen","die Stärke in % der max. Leistungsfähigkeit","die Länge der Pause","die Trainingsdauer"],1,"Intensität in % (30–100 %) der maximalen Leistungsfähigkeit."],
+ ["methoden","Der Belastungsumfang ist …",["Häufigkeit der Belastung (z. B. Wiederholungen, Distanz)","die Pausenlänge","die Belastungsstärke","die Tageszeit"],0,"Umfang = Wdh./Distanz etc."],
+ ["methoden","Mit der Wettkampfmethode trainiert man …",["nur Theorie","unter wettkampfnahen/echten Bedingungen","ohne Belastung","nur Dehnen"],1,"Belastung im Wettkampf oder wettkampfnah (auch under-/overdistance)."],
+ ["methoden","Trend von Wiederholungs- zu Dauermethode: Was stimmt?",["Intensität steigt, Umfang sinkt","Intensität sinkt, Umfang steigt","Beides steigt","Beides sinkt"],1,"Intensität ↓, Umfang ↑, Dauer ↑, Pausen ↓."],
+ ["methoden","Wie viele Trainingsmethoden unterscheiden die Folien?",["2","3","4","6"],2,"Dauer, Intervall, Wiederholung, Wettkampf."],
+];
+
+/* ===================== HELFER ===================== */
+const $ = s => document.querySelector(s);
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* ===================== TABS ===================== */
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+function show(t){
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id===t));
+  window.scrollTo({top:0});
+  if(t==='quiz' && !quizStarted) renderQuizStart();
+}
+
+/* ===================== TIMER + PLAN ===================== */
+const PLAN = [
+ [0,5,"Überblick","Lies den Kasten „Die ganze Sporttheorie in einem Satz“ (unten) und Spickzettel ① Begriffe.","sheet"],
+ [5,15,"Kondition","Spickzettel ②: Kraft, Schnelligkeit, Ausdauer, Beweglichkeit. Lern die Tabellen und die Zeiten 45 s · 2 min · 8 min.","sheet"],
+ [15,25,"Koordination","Spickzettel ③: die 7 Fähigkeiten, KAR-Modell, PZKSB, Analysator.","sheet"],
+ [25,33,"Belastung","Spickzettel ④: Reizarten, Superkompensation, Pausen (zu kurz/optimal/zu lang).","sheet"],
+ [33,40,"Methoden","Spickzettel ⑤: 4 Methoden und die Belastungsgefüge-Tabelle (Trend merken!).","sheet"],
+ [40,52,"Karteikarten","Alle Karten durchgehen, laut antworten. Wiederhole „Nochmal“-Karten, bis alle grün sind.","cards"],
+ [52,60,"Abschlusstest","Quiz machen (alle Fragen). Bei Fehlern direkt die Erklärung lesen und falsche Fragen wiederholen.","quiz"],
+];
+const stepsEl = $('#steps');
+const doneSteps = store.get('steps',{});
+PLAN.forEach((p,i)=>{
+  const d=document.createElement('div'); d.className='card step'; d.id='step'+i;
+  d.innerHTML=`<input type="checkbox" ${doneSteps[i]?'checked':''} aria-label="erledigt">
+    <div class="min">${p[0]}–${p[1]} min</div>
+    <div style="flex:1"><h3>${p[2]}</h3><div class="muted">${p[3]}</div></div>
+    <button data-go="${p[4]}">Los →</button>`;
+  d.querySelector('input').onchange=e=>{doneSteps[i]=e.target.checked;store.set('steps',doneSteps);};
+  d.querySelector('button').onclick=()=>show(p[4]);
+  stepsEl.appendChild(d);
+});
+
+let total=3600, left=total, tick=null;
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function paint(){
+  $('#timer').textContent=fmt(Math.max(0,left));
+  const el=(total-left)/60;
+  PLAN.forEach((p,i)=>$('#step'+i).classList.toggle('now', tick!==null && el>=p[0] && el<p[1]));
+}
+$('#tbtn').onclick=()=>{
+  if(tick){clearInterval(tick);tick=null;$('#tbtn').textContent='▶ Weiter';paint();return;}
+  $('#tbtn').textContent='⏸ Pause';
+  tick=setInterval(()=>{left--; if(left<=0){clearInterval(tick);tick=null;left=0;$('#tbtn').textContent='▶ Start';alert('Die 60 Minuten sind um. Du hast es geschafft! 🎉');} paint();},1000);
+  paint();
+};
+$('#treset').onclick=()=>{clearInterval(tick);tick=null;left=total;$('#tbtn').textContent='▶ Start';paint();};
+paint();
+
+/* ===================== KARTEIKARTEN ===================== */
+let deck='alle', queue=[], cur=null;
+const known = store.get('known',{});   // key -> true
+const cardKey = c => c[1];
+function buildDeckBar(){
+  const bar=$('#deckbar'); bar.innerHTML='';
+  const mk=(id,label)=>{const b=document.createElement('button');b.className='chip'+(deck===id?' on':'');b.textContent=label;b.onclick=()=>{deck=id;buildDeckBar();startDeck();};bar.appendChild(b);};
+  mk('alle','Alle'); Object.entries(TOPICS).forEach(([k,v])=>mk(k,v));
+  const r=document.createElement('button');r.textContent='Fortschritt zurücksetzen';r.style.marginLeft='auto';
+  r.onclick=()=>{ if(confirm('Wirklich alle Karten wieder auf „unbekannt“ setzen?')){ for(const k in known) delete known[k]; store.set('known',known); startDeck(); } };
+  bar.appendChild(r);
+}
+function pool(){ return CARDS.filter(c=>deck==='alle'||c[0]===deck); }
+function startDeck(){
+  queue = shuffle(pool().filter(c=>!known[cardKey(c)]));
+  nextCard();
+}
+function updateProg(){
+  const p=pool(), k=p.filter(c=>known[cardKey(c)]).length;
+  $('#cprog').style.width=(100*k/p.length)+'%';
+  $('#cinfo').textContent=`${k} von ${p.length} Karten gewusst · ${queue.length} offen`;
+}
+function nextCard(){
+  updateProg();
+  const area=$('#cardarea');
+  if(!queue.length){
+    const p=pool();
+    area.innerHTML=`<div class="card" style="text-align:center"><div class="big">🎉</div><h2>Stapel geschafft!</h2><p class="muted">Alle ${p.length} Karten in „${deck==='alle'?'Alle':TOPICS[deck]}“ sitzen.</p><button class="primary" id="again">Alle nochmal durchgehen</button> <button id="toquiz">Weiter zum Quiz</button></div>`;
+    $('#again').onclick=()=>{p.forEach(c=>delete known[cardKey(c)]);store.set('known',known);startDeck();};
+    $('#toquiz').onclick=()=>show('quiz'); return;
+  }
+  cur=queue[0];
+  area.innerHTML=`<div class="fc" id="fc"><div class="fc-inner">
+      <div class="face"><small>${TOPICS[cur[0]]}</small><div class="q">${esc(cur[1])}</div><div class="muted" style="margin-top:16px">Klick oder Leertaste zum Umdrehen</div></div>
+      <div class="face back"><small>Antwort</small><div class="a">${esc(cur[2]).replace(/\n/g,'<br>')}</div></div>
+    </div></div>
+    <div class="fc-actions"><button class="bad" id="no">✗ Nochmal</button><button class="good" id="yes">✓ Gewusst</button></div>`;
+  $('#fc').onclick=()=>$('#fc').classList.toggle('flip');
+  $('#yes').onclick=()=>{known[cardKey(cur)]=true;store.set('known',known);queue.shift();nextCard();};
+  $('#no').onclick=()=>{queue.push(queue.shift()); if(queue.length===1){} nextCard();};
+}
+document.addEventListener('keydown',e=>{
+  if(!$('#cards').classList.contains('on')) return;
+  const fc=$('#fc'); if(!fc) return;
+  if(e.code==='Space'){e.preventDefault();fc.classList.toggle('flip');}
+  if(e.key==='ArrowRight'&&$('#yes')) $('#yes').click();
+  if(e.key==='ArrowLeft'&&$('#no')) $('#no').click();
+});
+buildDeckBar(); startDeck();
+
+/* ===================== QUIZ ===================== */
+let quizStarted=false, qs=[], qi=0, score=0, wrongQs=[], answered=false;
+function renderQuizStart(){
+  const best=store.get('best',null);
+  $('#quizarea').innerHTML=`<div class="card"><h2>Abschlusstest</h2>
+    <p class="muted">${QUIZ.length} Multiple-Choice-Fragen aus allen Themen. Nach jeder Antwort siehst du die Erklärung. Am Ende kannst du nur deine Fehler wiederholen.</p>
+    ${best!==null?`<p>Dein Bestwert: <b>${best}%</b></p>`:''}
+    <button class="primary" id="qall">Alle Fragen (gemischt)</button>
+    <h3 style="margin-top:16px">Oder nur ein Thema:</h3>
+    <div class="deckbar">${Object.entries(TOPICS).map(([k,v])=>`<button class="chip" data-q="${k}">${v}</button>`).join('')}</div></div>`;
+  $('#qall').onclick=()=>startQuiz(QUIZ);
+  document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>startQuiz(QUIZ.filter(q=>q[0]===b.dataset.q),b.dataset.q));
+}
+function startQuiz(list,topic){
+  quizStarted=true; qs=shuffle(list); qi=0; score=0; wrongQs=[]; renderQ(topic||'alle');
+}
+function renderQ(topic){
+  const q=qs[qi]; answered=false;
+  const order=shuffle(q[2].map((t,i)=>({t,ok:i===q[3]})));
+  $('#quizarea').innerHTML=`<div class="card">
+    <div class="prog"><i style="width:${100*qi/qs.length}%"></i></div>
+    <div class="muted">Frage ${qi+1} / ${qs.length} · ${TOPICS[q[0]]} · Punkte: ${score}</div>
+    <h2 style="margin-top:8px">${esc(q[1])}</h2>
+    <div id="opts"></div><div id="fb"></div></div>`;
+  const opts=$('#opts');
+  order.forEach(o=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=o.t;
+    b.onclick=()=>{
+      if(answered) return; answered=true;
+      opts.querySelectorAll('button').forEach(x=>x.disabled=true);
+      order.forEach((oo,i)=>{ if(oo.ok) opts.children[i].classList.add('right'); });
+      if(o.ok){score++;} else {b.classList.add('wrong'); wrongQs.push(q);}
+      $('#fb').innerHTML=`<div class="explain">${o.ok?'✅ Richtig!':'❌ Leider falsch.'} ${esc(q[4])}</div>
+        <p><button class="primary" id="nx">${qi+1<qs.length?'Weiter →':'Ergebnis'}</button></p>`;
+      $('#nx').onclick=()=>{qi++; qi<qs.length?renderQ(topic):renderResult(topic);};
+      $('#nx').focus();
+    };
+    opts.appendChild(b);
+  });
+}
+function renderResult(topic){
+  const pct=Math.round(100*score/qs.length);
+  if(topic==='alle'){ const b=store.get('best',null); if(b===null||pct>b) store.set('best',pct); }
+  const msg=pct>=90?'Stark! Du kannst das. 🏆':pct>=70?'Gut! Schau dir kurz die Fehler an.':'Noch etwas Luft nach oben: erst Spickzettel/Karteikarten, dann Fehler wiederholen.';
+  $('#quizarea').innerHTML=`<div class="card" style="text-align:center"><div class="big">${pct}%</div>
+    <h2>${score} von ${qs.length} richtig</h2><p class="muted">${msg}</p>
+    ${wrongQs.length?`<button class="primary" id="rw">Nur ${wrongQs.length} falsche Fragen wiederholen</button> `:''}
+    <button id="rs">Zurück zur Auswahl</button></div>`;
+  if(wrongQs.length) $('#rw').onclick=()=>startQuiz(wrongQs,topic);
+  $('#rs').onclick=()=>{quizStarted=false;renderQuizStart();};
+}
+</script>
+</body>
+</html>
