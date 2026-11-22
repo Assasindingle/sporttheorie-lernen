@@ -74,6 +74,26 @@ details.card[open] summary{margin-bottom:8px}
 .big{font-size:44px;font-weight:800}
 svg text{fill:var(--ink);font-family:system-ui,sans-serif}
 @media(max-width:600px){.face .q{font-size:18px}.step .min{flex-basis:64px}}
+.printonly{display:none}
+@media print{
+  :root{--bg:#fff;--card:#fff;--ink:#000;--muted:#333;--line:#999;--accent:#000;--accent-soft:#eee;--warn-soft:#f3f3f3;--warn:#555}
+  body{font-size:11pt;background:#fff;color:#000}
+  header,nav,.step,#plan,#cards,#quiz{display:none!important}
+  main{max-width:none;padding:0}
+  #sheet{display:block!important}
+  #sheet>.card:nth-child(2){display:none}
+  .printonly{display:block;margin-bottom:10px}
+  .printonly h1{font-size:18pt;margin:0}
+  .card{border:none;border-radius:0;padding:0 0 8px;margin:0 0 10px}
+  details.card{break-inside:auto}
+  details.card summary{font-size:15pt;border-bottom:2px solid #000;margin-bottom:6px;list-style:none}
+  details.card summary::-webkit-details-marker{display:none}
+  h3{break-after:avoid;margin-top:8px}
+  table,.merke,svg{break-inside:avoid}
+  table{font-size:9.5pt}
+  th,td{padding:3px 5px}
+  .tablewrap{overflow:visible}
+}
 </style>
 </head>
 <body>
@@ -83,6 +103,7 @@ svg text{fill:var(--ink);font-family:system-ui,sans-serif}
     <span class="timer" id="timer">60:00</span>
     <button class="primary" id="tbtn">▶ Start</button>
     <button id="treset" title="Timer zurücksetzen">⟲</button>
+    <button id="pbtn" title="Spickzettel als PDF speichern oder ausdrucken">🖨 Drucken</button>
   </div>
   <nav id="nav">
     <button data-t="plan" class="on">1 · Lernplan</button>
@@ -108,6 +129,7 @@ svg text{fill:var(--ink);font-family:system-ui,sans-serif}
 
 <!-- ============ SPICKZETTEL ============ -->
 <section id="sheet">
+  <div class="printonly"><h1>Sporttheorie – Zusammenfassung (Klasse 9)</h1><div class="muted">Inhalt der Unterrichts-PDFs: Begriffe, Kondition, Koordination, Trainingsbelastung, Trainingsmethoden. Bilder/Definitionen nach den Folien von Herrn Rach und KNSU (CC BY-SA 4.0).</div></div>
   <div class="card"><h2>Spickzettel</h2><p class="muted">Alles aus deinen 6 PDFs, kompakt. Klapp ein Thema nach dem anderen auf. <span class="tag">Merke</span> = Prüfungsgold.</p></div>
 
   <details class="card" open>
@@ -437,6 +459,11 @@ const store = {
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 };
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+/* ===================== DRUCKEN ===================== */
+function openAllDetails(){ document.querySelectorAll('#sheet details').forEach(d=>d.open=true); }
+window.addEventListener('beforeprint',openAllDetails);
+$('#pbtn').onclick=()=>{ openAllDetails(); show('sheet'); setTimeout(()=>window.print(),150); };
 
 /* ===================== TABS ===================== */
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
